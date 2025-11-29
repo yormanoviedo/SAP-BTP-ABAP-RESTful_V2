@@ -1,0 +1,5 @@
+CLASS zbp_i_booksuppl_yop DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF z_i_travel_yop.
+ENDCLASS.
+
+CLASS zbp_i_booksuppl_yop IMPLEMENTATION.
+ENDCLASS.
