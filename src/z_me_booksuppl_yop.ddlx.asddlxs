@@ -1,0 +1,27 @@
+@Metadata.layer: #CORE
+@Search.searchable: true
+@UI:{
+    headerInfo: {
+    typeName: 'Booking Supplement',
+    typeNamePlural: 'Booking Supplements',
+    title: {
+        type: #STANDARD,
+        label: 'Booking Supplement',
+        value: 'BookingSupplementId'
+    }
+}
+}
+annotate view z_c_booksuppl_yop with
+{
+  @UI.facet: [{
+  id: 'BookingSupplement',
+  purpose: #STANDARD,
+  type: #IDENTIFICATION_REFERENCE ,
+  label: 'Booking Supplements',
+  position: 10 }]
+
+
+  @Search.defaultSearchElement: true
+  TravelID;
+
+}
