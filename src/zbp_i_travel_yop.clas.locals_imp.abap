@@ -39,6 +39,35 @@ CLASS lhc_Travel IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD createTravelByTemplate.
+
+    "Parametros que tengo disponible en este metodo
+    "keys[ 1 ]    Entradas
+    "result[ 1 ]  Salidas
+    "mapped
+    "failed       para fallos
+    "reported     para reportar los fallos
+
+
+    "Usaremos EML para copiar el registro seleccionado
+    "opcion 1 - RECOMENDADA
+    READ ENTITIES OF z_i_travel_yop
+             ENTITY Travel
+             FIELDS ( travel_id agency_id customer_id booking_fee total_price currency_code )
+             WITH VALUE #( FOR row_key IN keys ( %key = row_key-%key ) )
+             RESULT DATA(lt_read_entity_travel)
+             FAILED failed
+             REPORTED reported.
+
+    "opcion 2
+*    READ ENTITY z_i_travel_yop
+*             FIELDS ( travel_id agency_id customer_id booking_fee total_price currency_code )
+*             WITH VALUE #( FOR row_key IN keys ( %key = row_key-%key ) )
+*             RESULT lt_read_entity_travel
+*             FAILED failed
+*             REPORTED reported.
+
+    CHECK failed IS INITIAL.
+
   ENDMETHOD.
 
   METHOD rejectTravel.
