@@ -50,11 +50,12 @@ CLASS lhc_Travel IMPLEMENTATION.
 
     "Usaremos EML para copiar el registro seleccionado
     "opcion 1 - RECOMENDADA
+    " 1- Leemos la entidad de negocio
     READ ENTITIES OF z_i_travel_yop
              ENTITY Travel
              FIELDS ( travel_id agency_id customer_id booking_fee total_price currency_code )
              WITH VALUE #( FOR row_key IN keys ( %key = row_key-%key ) )
-             RESULT DATA(lt_read_entity_travel)
+             RESULT DATA(lt_entity_travel)
              FAILED failed
              REPORTED reported.
 
@@ -62,11 +63,65 @@ CLASS lhc_Travel IMPLEMENTATION.
 *    READ ENTITY z_i_travel_yop
 *             FIELDS ( travel_id agency_id customer_id booking_fee total_price currency_code )
 *             WITH VALUE #( FOR row_key IN keys ( %key = row_key-%key ) )
-*             RESULT lt_read_entity_travel
+*             RESULT lt_entity_travel
 *             FAILED failed
 *             REPORTED reported.
 
     CHECK failed IS INITIAL.
+
+
+    " 2- Creamos los datos del nuevo viaje
+    DATA lt_create_travel TYPE TABLE FOR CREATE z_i_travel_yop\\Travel.
+
+    SELECT MAX( travel_id ) FROM ztravel_yop INTO @DATA(lv_max_id).
+
+    DATA(lv_today) = cl_abap_context_info=>get_system_date(  ).
+
+    lt_create_travel = VALUE #( FOR cr IN lt_entity_travel INDEX INTO idx
+                                (
+                                  travel_id         = lv_max_id + idx  "El siguiente valor de id
+                                  agency_id         = cr-agency_id
+                                  customer_id       = cr-customer_id
+                                  begin_date        = lv_today
+                                  end_date          = lv_today + 30
+                                  booking_fee       = cr-booking_fee
+                                  total_price       = cr-total_price
+                                  currency_code     = cr-currency_code
+                                  description       = 'Add commenst...'
+                                  overall_status    = 'O'
+                                )
+                            ).
+
+
+    " 3- Modificar la entidad hasta la capa de persistencia
+    MODIFY ENTITIES OF z_i_travel_yop
+        IN LOCAL MODE ENTITY Travel
+        CREATE FIELDS (
+                      travel_id
+                      agency_id
+                      customer_id
+                      begin_date
+                      end_date
+                      booking_fee
+                      total_price
+                      currency_code
+                      description
+                      overall_status
+                      )
+        WITH lt_create_travel
+        MAPPED mapped
+        FAILED failed
+        REPORTED reported.
+
+    " 4- Devolvemos a la capa de interfaz de usuario los datos correspondientes
+    result = VALUE #( FOR rr IN lt_create_travel INDEX INTO idx
+                        (
+                             %cid_ref = keys[ idx ]-%cid_ref
+                             %key     = keys[ idx ]-%key
+                             %param   =  CORRESPONDING #( rr )
+                        )
+                    ).
+
 
   ENDMETHOD.
 
